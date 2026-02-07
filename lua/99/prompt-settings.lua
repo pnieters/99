@@ -12,6 +12,34 @@ local prompts = {
   role = function()
     return [[ You are a software engineering assistant mean to create robust and conanical code ]]
   end,
+  semantic_search = function()
+    return [[
+you are given a prompt and you must search through this project and return code that matches the description provided.
+<Rule>You must provide output without any commentary, just text locations</Rule>
+<Rule>Text locations are in the format of: /path/to/file.ext:lnum:cnum,X
+lnum = starting line number 1 based
+cnum = starting column number 1 based
+X = how many lines should be highlighted
+</Rule>
+<Rule>Each location is separated by new lines</Rule>
+<Rule>Each path is specified in absolute pathing</Rule>
+<Example>
+You have found 3 locations in files foo.js, bar.js, and baz.js.  There are 2 locations in foo.js, 1 in bar.js and baz.js.
+<Output>
+/path/to/project/src/foo.js:24:8,3
+/path/to/project/src/foo.js:71:12,7
+/path/to/project/src/bar.js:13:2,1
+/path/to/project/src/baz.js:1:1,52
+</Output>
+<Meaning>
+This means that the search results found
+foo.js at line 24, char 8 and the next 2 lines
+foo.js at line 71, char 12 and the next 6 lines
+bar.js at line 13, char 2
+baz.js at line 1, char 1 and the next 51 lines
+</Meaning>
+]]
+  end,
   fill_in_function = function()
     return [[
 You have been given a function change.
@@ -59,18 +87,22 @@ ONLY provide requested changes by writing the change to TEMP_FILE
   end,
   --- @param prompt string
   --- @param action string
+  --- @param name string defaults to DIRECTIONS
   --- @return string
-  prompt = function(prompt, action)
+  prompt = function(prompt, action, name)
+    name = name or "DIRECTIONS"
     return string.format(
       [[
-<DIRECTIONS>
+<%s>
 %s
-</DIRECTIONS>
+</%s>
 <Context>
 %s
 </Context>
 ]],
+      name,
       prompt,
+      name,
       action
     )
   end,
